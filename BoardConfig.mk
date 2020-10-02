@@ -23,18 +23,21 @@
 # *not* include it on all devices, so it is safe even with hardware-specific
 # components.
 
+DEVICE_PATH := device/asus/I01WD
 # Architecture
 TARGET_ARCH := arm64
-TARGET_ARCH_VARIANT := armv8-2a
+TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
 TARGET_CPU_ABI2 :=
-TARGET_CPU_VARIANT := cortex-a75
+TARGET_CPU_VARIANT := generic
+TARGET_CPU_VARIANT_RUNTIME := kryo385
 
 TARGET_2ND_ARCH := arm
 TARGET_2ND_ARCH_VARIANT := armv8-a
 TARGET_2ND_CPU_ABI := armeabi-v7a
 TARGET_2ND_CPU_ABI2 := armeabi
-TARGET_2ND_CPU_VARIANT := cortex-a75
+TARGET_2ND_CPU_VARIANT := generic
+TARGET_2ND_CPU_VARIANT_RUNTIME := kryo385
 
 ENABLE_CPUSETS := true
 ENABLE_SCHEDBOOST := true
@@ -46,19 +49,18 @@ TARGET_USES_UEFI := true
 
 # Kernel
 BOARD_KERNEL_CMDLINE := console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0xa90000 androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 swiotlb=2048 loop.max_part=7 androidboot.usbcontroller=a600000.dwc3
-BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
-BOARD_KERNEL_CMDLINE += skip_override androidboot.fastboot=1
+
+BOARD_KERNEL_CMDLINE += androidboot.hardware=qcom
 BOARD_KERNEL_BASE := 0x00000000
-BOARD_KERNEL_TAGS_OFFSET := 0x00008000
-BOARD_RAMDISK_OFFSET     := 0x01000000
-BOARD_TAGS_OFFSET := 0x00000100
+BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb
 BOARD_KERNEL_PAGESIZE := 4096
-TARGET_PREBUILT_KERNEL := device/asus/I01WD/prebuilt/Image.gz-dtb
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/$(BOARD_KERNEL_IMAGE_NAME)
 
 # Platform
 TARGET_BOARD_PLATFORM := msmnile
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno640
-QCOM_BOARD_PLATFORMS += msmnile
+TARGET_USES_HARDWARE_QCOM_BOOTCTRL := true
+QCOM_BOARD_PLATFORMS += $(TARGET_BOARD_PLATFORM)
 
 # Partitions
 BOARD_FLASH_BLOCK_SIZE := 262144
@@ -83,12 +85,11 @@ BOARD_BUILD_SYSTEM_ROOT_IMAGE := true
 #TARGET_RECOVERY_WIPE := device/asus/I01WD/recovery.wipe
 #TARGET_RECOVERY_FSTAB := device/asus/I01WD/recovery.fstab
 
-
 # Workaround for error copying vendor files to recovery ramdisk
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 TARGET_COPY_OUT_VENDOR := vendor
 
-#Init
+# Init
 TARGET_INIT_VENDOR_LIB := libinit_I01WD
 TARGET_RECOVERY_DEVICE_MODULES := libinit_I01WD
 
@@ -105,7 +106,6 @@ TW_EXCLUDE_DEFAULT_USB_INIT := true
 TW_EXCLUDE_SUPERSU := true
 #TW_EXTRA_LANGUAGES := true
 TW_INCLUDE_NTFS_3G := true
-AB_OTA_UPDATER := true
 TW_INPUT_BLACKLIST := "hbtp_vm"
 TW_MAX_BRIGHTNESS := 255
 TW_DEFAULT_BRIGHTNESS := 120
@@ -116,31 +116,35 @@ TARGET_RECOVERY_PIXEL_FORMAT := BGRA_8888
 TW_NO_SCREEN_BLANK := true
 TW_USE_TOOLBOX := true
 TW_EXCLUDE_UBSAN := true
+TW_OVERRIDE_SYSTEM_PROPS := \
+    "ro.build.product;ro.build.fingerprint=ro.system.build.fingerprint;ro.build.version.incremental;ro.product.device=ro.product.system.device;ro.product.model=ro.product.system.model;ro.product.name=ro.product.system.name"
+
+# Additional binaries & libraries needed for recovery
+TARGET_RECOVERY_DEVICE_MODULES += android.hidl.base@1.0 ashmemd_aidl_interface-cpp bootctrl.$(TARGET_BOARD_PLATFORM).recovery
+TARGET_RECOVERY_DEVICE_MODULES += libashmemd_client libcap libion libpcrecpp libxml2
+TARGET_RECOVERY_DEVICE_MODULES += tzdata
+TW_RECOVERY_ADDITIONAL_RELINK_BINARY_FILES += $(TARGET_OUT)/usr/share/zoneinfo/tzdata
+TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/android.hidl.base@1.0.so $(TARGET_OUT_SHARED_LIBRARIES)/libashmemd_client.so $(TARGET_OUT_SHARED_LIBRARIES)/ashmemd_aidl_interface-cpp.so
+TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcap.so $(TARGET_OUT_SHARED_LIBRARIES)/libion.so $(TARGET_OUT_SHARED_LIBRARIES)/libpcrecpp.so $(TARGET_OUT_SHARED_LIBRARIES)/libxml2.so
 
 # Use mke2fs to create ext4 images
 #TARGET_USES_MKE2FS := true
 
-# A/B updater updatable partitions list. Keep in sync with the partition list
-# with "_a" and "_b" variants in the device. Note that the vendor can add more
-# more partitions to this list for the bootloader and radio.
-AB_OTA_PARTITIONS += \
-    boot \
-    system \
-    vendor \
-    vbmeta \
-    dtbo 
-
 # Encryption
 PLATFORM_SECURITY_PATCH := 2099-12-31
+VENDOR_SECURITY_PATCH := 2099-12-31
 TW_INCLUDE_CRYPTO := true
 TW_INCLUDE_CRYPTO_FBE := true
 BOARD_USES_METADATA_PARTITION := true
 
 # Extras
+TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
+
+# TWRP specific build flags
 BOARD_SUPPRESS_SECURE_ERASE := true
 TW_USE_LEDS_HAPTICS := true
 USE_RECOVERY_INSTALLER := true
-RECOVERY_INSTALLER_PATH := device/asus/I01WD/installer
+RECOVERY_INSTALLER_PATH := $(DEVICE_PATH)/installer
 TW_EXCLUDE_TWRPAPP := true
 TW_INCLUDE_REPACKTOOLS := true
 TW_HAS_EDL_MODE := true

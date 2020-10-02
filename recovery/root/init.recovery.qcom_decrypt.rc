@@ -1,0 +1,88 @@
+import /init.recovery.qcom_decrypt.fbe.rc
+
+on fs
+    # needed to make qseecomd work in recovery
+    chmod 0660 /dev/qseecom
+    chown system drmrpc /dev/qseecom
+    chmod 0664 /dev/ion
+    chown system system /dev/ion
+
+on property:ro.crypto.state=encrypted
+    start prepdecrypt
+
+on property:crypto.ready=1
+    start qseecomd
+
+on property:sys.listeners.registered=true
+    start hwservicemanager
+
+on property:vendor.sys.listeners.registered=true
+    start hwservicemanager
+
+on property:hwservicemanager.ready=true
+    start keymaster-3-0
+    start keymaster-3-0-qti
+    start keymaster-4-0
+    start keymaster-4-0-qti
+
+on property:ro.crypto.type=block && property:ro.crypto.fs_crypto_blkdev=*
+    setprop crypto.ready 0
+    stop qseecomd
+    stop hwservicemanager
+    stop keymaster-3-0
+    stop keymaster-3-0-qti
+    stop keymaster-4-0
+    stop keymaster-4-0-qti
+
+# For Android 10 trees, services should be placed in /system/bin in the recovery ramdisk
+# For older trees, the services should be placed in /sbin
+# Make sure the path of the service EXACTLY matches the location of the binary!!
+
+service prepdecrypt /system/bin/prepdecrypt.sh
+    user root
+    group root
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
+
+service qseecomd /system/bin/qseecomd
+    user root
+    group root
+    setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/system/lib64:/system/lib:/sbin
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
+
+service hwservicemanager /system/bin/hwservicemanager
+    user root
+    group root
+    disabled
+    seclabel u:r:recovery:s0
+
+service keymaster-3-0 /sbin/android.hardware.keymaster@3.0-service
+    user root
+    group root
+    setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/sbin:/system/lib64:/system/lib
+    disabled
+    seclabel u:r:recovery:s0
+
+service keymaster-3-0-qti /sbin/android.hardware.keymaster@3.0-service-qti
+    user root
+    group root
+    setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/sbin:/system/lib64:/system/lib
+    disabled
+    seclabel u:r:recovery:s0
+
+service keymaster-4-0 /sbin/android.hardware.keymaster@4.0-service
+    user root
+    group root
+    setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/sbin:/system/lib64:/system/lib
+    disabled
+    seclabel u:r:recovery:s0
+
+service keymaster-4-0-qti /system/bin/android.hardware.keymaster@4.0-service-qti
+    user root
+    group root
+    setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/system/lib64:/system/lib:/sbin
+    disabled
+    seclabel u:r:recovery:s0
