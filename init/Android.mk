@@ -22,7 +22,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_C_INCLUDES := \
     system/core/base/include \
     system/core/init
-LOCAL_SRC_FILES := init_I01WD.cpp
-LOCAL_MODULE := libinit_I01WD
+LOCAL_SRC_FILES := init_$(TARGET_DEVICE).cpp
+LOCAL_MODULE := libinit_$(TARGET_DEVICE)
 
 include $(BUILD_STATIC_LIBRARY)
