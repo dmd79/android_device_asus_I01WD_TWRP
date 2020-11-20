@@ -23,6 +23,8 @@
 # *not* include it on all devices, so it is safe even with hardware-specific
 # components.
 
+ALLOW_MISSING_DEPENDENCIES := true
+
 # Architecture
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-2a
@@ -91,6 +93,38 @@ TARGET_RECOVERY_DEVICE_MODULES := libinit_ASUS_I01WD
 # Recovery
 BOARD_HAS_LARGE_FILESYSTEM := true
 BOARD_HAS_NO_SELECT_BUTTON := true
+
+# SHRP Parameters
+SHRP_PATH := device/asus/ASUS_I01WD
+SHRP_MAINTAINER := dmd79
+SHRP_DEVICE_CODE := I01WD
+SHRP_EDL_MODE := 1
+SHRP_EXTERNAL := /external_sd
+SHRP_INTERNAL := /sdcard
+SHRP_OTG := /usb_otg
+SHRP_FLASH := 1
+
+# These are led paths, find yours then put here (Optional)
+#SHRP_CUSTOM_FLASHLIGHT := true
+#SHRP_FONP_1 := /sys/class/leds/led:torch_0/brightness
+#SHRP_FONP_2 := /sys/class/leds/led:torch_1/brightness
+#SHRP_FONP_3 := /sys/class/leds/led:switch/brightness
+
+# Max Brightness of LED (Optional)
+SHRP_FLASH_MAX_BRIGHTNESS := 200
+SHRP_REC := DUMMY
+SHRP_AB := true
+SHRP_REC_TYPE := Treble
+SHRP_DEVICE_TYPE := A/B
+SHRP_STATUSBAR_RIGHT_PADDING := 40
+SHRP_STATUSBAR_LEFT_PADDING := 40
+
+# SHRP 2.3 Flags
+SHRP_DARK := true
+SHRP_EXPRESS := true
+
+# Force mount system in /system despite SAR policy, useful for maintaining backwards compatibility and/or Samsung devices.
+SHRP_NO_SAR_AUTOMOUNT := true
 
 # TWRP specific build flags
 BOARD_HAS_NO_REAL_SDCARD := true
